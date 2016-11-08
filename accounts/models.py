@@ -58,16 +58,17 @@ class Participation(PonyConfModel):
     site = models.ForeignKey(Site, on_delete=models.CASCADE)
     user = models.ForeignKey(User)
 
-
     need_transport = models.NullBooleanField(verbose_name=_('Defray transportation?'), default=None)
     arrival = models.DateTimeField(blank=True, null=True)
     departure = models.DateTimeField(blank=True, null=True)
     transport = models.ManyToManyField(Transport, verbose_name=_("I want to travel by"), blank=True)
     transport_city_outward = models.CharField(blank=True, default='', max_length=256, verbose_name=_("Departure city"))
-    transport_city_return = models.CharField(blank=True, default='', max_length=256, verbose_name=_("Return city"), help_text=_("If different from departure city"))
+    transport_city_return = models.CharField(blank=True, default='', max_length=256, verbose_name=_("Return city"),
+                                             help_text=_("If different from departure city"))
     transport_booked = models.BooleanField(default=False)
 
-    accommodation = models.IntegerField(choices=ACCOMMODATION_CHOICES, verbose_name=_('Need accommodation?'), null=True, blank=True)
+    accommodation = models.IntegerField(choices=ACCOMMODATION_CHOICES, verbose_name=_('Need accommodation?'),
+                                        null=True, blank=True)
     accommodation_booked = models.BooleanField(default=False)
 
     constraints = models.TextField(blank=True, verbose_name=_("Constraints"))
@@ -77,7 +78,8 @@ class Participation(PonyConfModel):
     videotaped = models.BooleanField(_("I'm ok to be recorded on video"), default=True)
     video_licence = models.IntegerField(choices=enum_to_choices(LICENCES), default=2, verbose_name=_("Video licence"))
 
-    notes = models.TextField(default='', blank=True, verbose_name=_("Notes"), help_text=_('This field is only visible by organizers.'))
+    notes = models.TextField(default='', blank=True, verbose_name=_("Notes"),
+                             help_text=_('This field is only visible by organizers.'))
     orga = models.BooleanField(default=False)
 
     class Meta:
@@ -111,14 +113,17 @@ class Participation(PonyConfModel):
     @property
     def accepted_talk_set(self):
         return self.talk_set.filter(accepted=True)
+
     @property
     def pending_talk_set(self):
         return self.talk_set.filter(accepted=None)
+
     @property
     def refused_talk_set(self):
         return self.talk_set.filter(accepted=False)
+
     @property
-    def not_refused_talk_set(self): # accepted + pending
+    def not_refused_talk_set(self):  # accepted + pending
         return self.talk_set.exclude(accepted=False)
 
     # return True, False or None if availabilities have not been filled

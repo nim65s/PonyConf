@@ -20,10 +20,11 @@ CHANGE_AVATAR_BUTTON = ('avatar_change', 'default', _('Change avatar'))
 @login_required
 def profile(request):
 
+    participation = Participation.objects.get(site=get_current_site(request), user=request.user)
+
     user_form = UserForm(request.POST or None, instance=request.user)
     profile_form = ProfileForm(request.POST or None, instance=request.user.profile)
-    participation_form = ParticipationForm(request.POST or None, instance=Participation.objects.get(site=get_current_site(request),
-                                                                                                    user=request.user))
+    participation_form = ParticipationForm(request.POST or None, instance=participation)
     forms = [user_form, profile_form, participation_form]
 
     if request.method == 'POST':
@@ -49,7 +50,7 @@ def participation_list(request):
 
     if request.method == 'POST' and form.is_valid():
         if not Participation.objects.get(user=request.user, site=get_current_site(request)).is_orga():
-            raise PermissionDenied()
+            raise PermissionDenied
         user = User.objects.get(username=form.cleaned_data['participant'])
         participation, created = Participation.objects.get_or_create(user=user, site=get_current_site(request))
         if created:
@@ -69,13 +70,13 @@ def edit(request, username):
 
     profile = get_object_or_404(Profile, user__username=username)
     if not can_edit_profile(request, profile):
-        raise PermissionDenied()
+        raise PermissionDenied
 
+    participation = Participation.objects.get(site=get_current_site(request), user=profile.user)
     participation_form = ParticipationOrgaForm if is_orga(request, request.user) else ParticipationForm
     forms = [UserForm(request.POST or None, instance=profile.user),
              ProfileOrgaForm(request.POST or None, instance=profile),
-             participation_form(request.POST or None,
-                                instance=Participation.objects.get(site=get_current_site(request), user=profile.user))]
+             participation_form(request.POST or None, instance=participation)]
 
     if request.method == 'POST':
         if all(form.is_valid() for form in forms):

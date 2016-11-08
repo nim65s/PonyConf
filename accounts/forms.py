@@ -12,24 +12,23 @@ UserForm = modelform_factory(User, fields=['first_name', 'last_name', 'email', '
 ProfileForm = modelform_factory(Profile, fields=['biography'])
 
 ParticipationForm = modelform_factory(Participation,
-                                      fields=['need_transport', 'transport', 'transport_city_outward', 'transport_city_return',
-                                              'accommodation',
-                                              'connector', 'sound', 'videotaped',
-                                              'video_licence', 'constraints'],
+                                      fields=['need_transport', 'transport', 'transport_city_outward',
+                                              'transport_city_return', 'accommodation', 'connector', 'sound',
+                                              'videotaped', 'video_licence', 'constraints'],
                                       widgets={'transport': forms.CheckboxSelectMultiple(),
                                                'connector': forms.CheckboxSelectMultiple()},
                                       help_texts = {
-                                            'constraints': _('For example, you need to be back on saturday evening, you cannot eat meat.'),
+                                          'constraints': _('For example: you need to be back on saturday evening, you'
+                                                           'cannot eat meat.'),
                                       })
 
 ProfileOrgaForm = modelform_factory(Profile, fields=['biography'])
 
 ParticipationOrgaForm = modelform_factory(Participation,
-                                          fields=['need_transport', 'transport', 'transport_city_outward', 'transport_city_return', 'transport_booked',
-                                                  'accommodation', 'accommodation_booked',
-                                                  'connector', 'sound', 'videotaped',
-                                                  'video_licence',
-                                                  'constraints', 'notes', 'orga'],
+                                          fields=['need_transport', 'transport', 'transport_city_outward',
+                                                  'transport_city_return', 'transport_booked', 'accommodation',
+                                                  'accommodation_booked', 'connector', 'sound', 'videotaped',
+                                                  'video_licence', 'constraints', 'notes', 'orga'],
                                           widgets={'transport': forms.CheckboxSelectMultiple(),
                                                    'connector': forms.CheckboxSelectMultiple()})
 
@@ -40,9 +39,8 @@ class ParticipationField(forms.ModelChoiceField):
 
 
 class NewParticipationForm(forms.Form):
-    def __init__(self, *args, **kwargs):
-        site = kwargs.pop('site')
+    def __init__(self, site, *args, **kwargs):
         super().__init__(*args, **kwargs)
         queryset = User.objects.exclude(participation__site=site).all()
         self.fields['participant'] = ParticipationField(queryset, widget=Select2Widget(),
-                                     label='Add participant from existing account')
+                                                        label='Add participant from existing account')

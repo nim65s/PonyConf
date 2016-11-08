@@ -1,9 +1,11 @@
+from datetime import datetime
+
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 
-from .models import Participation, Profile
+from .models import AvailabilityTimeslot, Participation, Profile
 
 ROOT_URL = 'accounts'
 
@@ -73,8 +75,6 @@ class AccountTests(TestCase):
         self.assertEqual(Participation.objects.get(user=User.objects.get(username='a')).video_licence, 2)
 
 
-from datetime import datetime
-from .models import AvailabilityTimeslot
 class DisponibilitiesTests(TestCase):
 
     def setUp(self):
