@@ -1,13 +1,13 @@
-from django.core.exceptions import PermissionDenied
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404
-from django.http import Http404
-
 from functools import wraps
 from uuid import UUID
 
-from cfp.utils import is_staff
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
+from django.http import Http404
+from django.shortcuts import get_object_or_404
+
 from cfp.models import Participant, Volunteer
+from cfp.utils import is_staff
 
 
 def speaker_required(view_func):

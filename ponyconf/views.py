@@ -1,6 +1,6 @@
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_http_methods
 from django.http import HttpResponse
+from django.views.decorators.http import require_http_methods
 
 from .utils import markdown_to_html
 

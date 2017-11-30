@@ -1,22 +1,25 @@
+import imaplib
+import logging
+import re
+import ssl
+from email import policy
+from email.parser import BytesParser
+
 from django.conf import settings
 from django.db import models
 
-import imaplib
-import ssl
-import logging
-from email import policy
-from email.parser import BytesParser
 import chardet
-import re
 
-from .models import MessageThread, MessageCorrespondent, Message, hexdigest_sha256
+from .models import Message, MessageCorrespondent, MessageThread, hexdigest_sha256
 
 
 class NoTokenFoundException(Exception):
     pass
 
+
 class InvalidTokenException(Exception):
     pass
+
 
 class InvalidKeyException(Exception):
     pass

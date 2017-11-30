@@ -1,14 +1,15 @@
+from datetime import datetime, timedelta
+from xml.etree import ElementTree as ET
+
+from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.utils import timezone
-from django.contrib import messages
 
-from datetime import datetime, timedelta
-from xml.etree import ElementTree as ET
-from icalendar import Calendar
 import pytz
+from icalendar import Calendar
 
 from .models import *
 

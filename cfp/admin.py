@@ -1,9 +1,7 @@
 from django.contrib import admin
-from django.contrib.sites.models import Site
 
 from .mixins import OnSiteAdminMixin
-from .models import Conference, Participant, Talk, TalkCategory, Track, \
-                    Vote, Volunteer, Activity, Tag
+from .models import Activity, Conference, Participant, Tag, Talk, TalkCategory, Track, Volunteer, Vote
 
 
 class ConferenceAdmin(OnSiteAdminMixin, admin.ModelAdmin):

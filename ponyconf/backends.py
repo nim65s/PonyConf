@@ -10,7 +10,7 @@ class EmailBackend(ModelBackend):
         try:
             user = UserModel._default_manager.get(email__iexact=username)
         except UserModel.DoesNotExist:
-            UserModel().set_password(password) # https://code.djangoproject.com/ticket/20760
+            UserModel().set_password(password)  # https://code.djangoproject.com/ticket/20760
         else:
             if user.check_password(password) and self.user_can_authenticate(user):
                 return user

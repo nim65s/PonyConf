@@ -16,7 +16,6 @@ class Command(BaseCommand):
         grp.add_argument('--trash')
         grp.add_argument('--no-trash', action='store_true')
 
-
     def handle(self, *args, **options):
         params = {
             'host': options['host'],

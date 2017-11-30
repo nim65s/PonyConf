@@ -1,39 +1,37 @@
 from django import forms
-from django.forms.models import modelform_factory
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
-from django.contrib.auth.forms import UsernameField
 from django.contrib.sites.models import Site
-from django.utils.translation import ugettext_lazy as _, pgettext_lazy
+from django.forms.models import modelform_factory
 from django.template.defaultfilters import slugify
 from django.utils.crypto import get_random_string
+from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import pgettext_lazy
 
 from django_select2.forms import ModelSelect2MultipleWidget
 
-from .models import Participant, Talk, TalkCategory, Track, Tag, \
-                    Conference, Room, Volunteer, Activity
-
+from .models import Activity, Conference, Participant, Room, Tag, Talk, TalkCategory, Track, Volunteer
 
 ACCEPTATION_CHOICES = [
-        ('pending', _('Pending decision')),
-        ('accepted', _('Accepted')),
-        ('declined', _('Declined')),
+    ('pending', _('Pending decision')),
+    ('accepted', _('Accepted')),
+    ('declined', _('Declined')),
 ]
 ACCEPTATION_VALUES = [
-        ('pending', None),
-        ('accepted', True),
-        ('declined', False),
+    ('pending', None),
+    ('accepted', True),
+    ('declined', False),
 ]
 
 CONFIRMATION_CHOICES = [
-        ('waiting', _('Waiting')),
-        ('confirmed', _('Confirmed')),
-        ('cancelled', _('Cancelled')),
+    ('waiting', _('Waiting')),
+    ('confirmed', _('Confirmed')),
+    ('cancelled', _('Cancelled')),
 ]
 CONFIRMATION_VALUES = [
-        ('waiting', None),
-        ('confirmed', True),
-        ('cancelled', False),
+    ('waiting', None),
+    ('confirmed', True),
+    ('cancelled', False),
 ]
 
 
@@ -56,11 +54,11 @@ class OnSiteNamedModelForm(forms.ModelForm):
 
 class VolunteerFilterForm(forms.Form):
     activity = forms.MultipleChoiceField(
-               label=_('Activity'),
-               required=False,
-               widget=forms.CheckboxSelectMultiple,
-               choices=[],
-   )
+        label=_('Activity'),
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        choices=[],
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -94,18 +92,18 @@ class TalkStaffForm(forms.ModelForm):
 def get_talk_speaker_form_class():
     return modelform_factory(
         Talk, form=TalkStaffForm,
-        fields = (
+        fields=(
             'category', 'track', 'title', 'description', 'notes', 'tags', 'start_date', 'duration', 'room',
             'materials', 'video', 'speakers',
         ),
-        labels = {
+        labels={
             'category': _('Category'),
             'title': _('Title'),
             'description': _('Description'),
             'notes': _('Notes'),
         },
         help_texts={'notes': _('Visible by speakers')},
-        widgets = {
+        widgets={
             'tags': forms.CheckboxSelectMultiple,
             'speakers': ModelSelect2MultipleWidget(model=Participant, search_fields=[
                 '%s__icontains' % f for f in (
@@ -117,54 +115,54 @@ def get_talk_speaker_form_class():
 
 class TalkFilterForm(forms.Form):
     category = forms.MultipleChoiceField(
-            label=_('Category'),
-            required=False,
-            widget=forms.CheckboxSelectMultiple,
-            choices=[],
+        label=_('Category'),
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        choices=[],
     )
     accepted = forms.MultipleChoiceField(
-            label=_('Accepted'),
-            required=False,
-            widget=forms.CheckboxSelectMultiple,
-            choices=ACCEPTATION_CHOICES,
+        label=_('Accepted'),
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        choices=ACCEPTATION_CHOICES,
     )
     confirmed = forms.MultipleChoiceField(
-            label=_('Confirmed'),
-            required=False,
-            widget=forms.CheckboxSelectMultiple,
-            choices=CONFIRMATION_CHOICES,
+        label=_('Confirmed'),
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        choices=CONFIRMATION_CHOICES,
     )
     track = forms.MultipleChoiceField(
-            label=_('Track'),
-            required=False,
-            widget=forms.CheckboxSelectMultiple,
-            choices=[],
+        label=_('Track'),
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        choices=[],
     )
     tag = forms.MultipleChoiceField(
-            label=_('Tag'),
-            required=False,
-            widget=forms.CheckboxSelectMultiple,
-            choices=[],
+        label=_('Tag'),
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        choices=[],
     )
     vote = forms.NullBooleanField(
-            label=_('Vote'),
-            help_text=_('Filter talks you already / not yet voted for'),
+        label=_('Vote'),
+        help_text=_('Filter talks you already / not yet voted for'),
     )
     room = forms.NullBooleanField(
-            label=_('Room'),
-            help_text=_('Filter talks already / not yet affected to a room'),
+        label=_('Room'),
+        help_text=_('Filter talks already / not yet affected to a room'),
     )
     scheduled = forms.NullBooleanField(
-            label=_('Scheduled'),
-            help_text=_('Filter talks already / not yet scheduled'),
+        label=_('Scheduled'),
+        help_text=_('Filter talks already / not yet scheduled'),
     )
     materials = forms.NullBooleanField(
-            label=_('Materials'),
-            help_text=_('Filter talks with / without materials'),
+        label=_('Materials'),
+        help_text=_('Filter talks with / without materials'),
     )
     video = forms.NullBooleanField(
-            label=_('Video'),
-            help_text=_('Filter talks with / without video'),
+        label=_('Video'),
+        help_text=_('Filter talks with / without video'),
     )
 
     def __init__(self, *args, **kwargs):
@@ -212,28 +210,28 @@ class ParticipantForm(OnSiteNamedModelForm):
 
 class ParticipantFilterForm(forms.Form):
     category = forms.MultipleChoiceField(
-            label=_('Category'),
-            required=False,
-            widget=forms.CheckboxSelectMultiple,
-            choices=[],
+        label=_('Category'),
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        choices=[],
     )
     accepted = forms.MultipleChoiceField(
-            label=_('Accepted'),
-            required=False,
-            widget=forms.CheckboxSelectMultiple,
-            choices=ACCEPTATION_CHOICES,
+        label=_('Accepted'),
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        choices=ACCEPTATION_CHOICES,
     )
     confirmed = forms.MultipleChoiceField(
-            label=_('Confirmed'),
-            required=False,
-            widget=forms.CheckboxSelectMultiple,
-            choices=CONFIRMATION_CHOICES,
+        label=_('Confirmed'),
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        choices=CONFIRMATION_CHOICES,
     )
     track = forms.MultipleChoiceField(
-            label=_('Track'),
-            required=False,
-            widget=forms.CheckboxSelectMultiple,
-            choices=[],
+        label=_('Track'),
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        choices=[],
     )
 
     def __init__(self, *args, **kwargs):
@@ -250,7 +248,7 @@ class MailForm(forms.Form):
 
 class UsersWidget(ModelSelect2MultipleWidget):
     model = User
-    search_fields = [ '%s__icontains' % field for field in UserAdmin.search_fields ]
+    search_fields = ['%s__icontains' % field for field in UserAdmin.search_fields]
 
 
 class ConferenceForm(forms.ModelForm):

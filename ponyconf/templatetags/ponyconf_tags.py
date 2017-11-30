@@ -2,7 +2,6 @@ from django import template
 
 from ponyconf.utils import markdown_to_html
 
-
 register = template.Library()
 
 

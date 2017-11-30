@@ -1,37 +1,33 @@
+import csv
+from functools import reduce
+
+from django.contrib import messages
+from django.core.exceptions import PermissionDenied
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse_lazy
+from django.db.models import Q
+from django.forms import modelform_factory
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import DeleteView, FormView, TemplateView
-from django.contrib import messages
-from django.db.models import Q
-from django.views.generic import CreateView, DetailView, ListView, UpdateView
-from django.http import HttpResponse, Http404
-from django.utils import timezone
-from django.core.exceptions import PermissionDenied
-from django.core.mail import send_mail
-from django.forms import modelform_factory
+from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 
 from django_select2.views import AutoResponseView
 
-from functools import reduce
-import csv
-
-from mailing.models import Message
 from mailing.forms import MessageForm
-from .planning import Program
-from .decorators import speaker_required, volunteer_required, staff_required
+from mailing.models import Message
+
+from .decorators import speaker_required, staff_required, volunteer_required
+from .forms import (ACCEPTATION_VALUES, CONFIRMATION_VALUES, ActivityForm, ConferenceForm,
+                    CreateUserForm, HomepageForm, MailForm, NotifyForm, ParticipantFilterForm,
+                    ParticipantForm, RoomForm, TagForm, TalkActionForm, TalkCategoryForm, TalkFilterForm,
+                    TalkForm, TrackForm, VolunteerFilterForm, VolunteerForm, get_talk_speaker_form_class)
 from .mixins import StaffRequiredMixin
+from .models import Activity, Participant, Room, Tag, Talk, TalkCategory, Track, Volunteer, Vote
+from .planning import Program
 from .utils import is_staff
-from .models import Participant, Talk, TalkCategory, Vote, Track, Tag, Room, Volunteer, Activity
-from .forms import TalkForm, TalkStaffForm, TalkFilterForm, TalkActionForm, get_talk_speaker_form_class, \
-                   ParticipantForm, ParticipantFilterForm, NotifyForm, \
-                   ConferenceForm, HomepageForm, CreateUserForm, TrackForm, RoomForm, \
-                   VolunteerForm, VolunteerFilterForm, MailForm, \
-                   TagForm, TalkCategoryForm, ActivityForm, \
-                   ACCEPTATION_VALUES, CONFIRMATION_VALUES
 
 
 def home(request):
@@ -75,12 +71,12 @@ Thanks!
 {}
 
 """).format(volunteer.name, request.conference.name, volunteer.get_secret_url(full=True), request.conference.name)
-        #Message.objects.create(
-        #    thread=volunteer.conversation,
-        #    author=request.conference,
-        #    from_email=request.conference.contact_email,
-        #    content=body,
-        #)
+        # Message.objects.create(
+        #     thread=volunteer.conversation,
+        #     author=request.conference,
+        #     from_email=request.conference.contact_email,
+        #     content=body,
+        # )
         send_mail(
             subject=_('Thank you for your help!'),
             message=body,
@@ -111,12 +107,12 @@ def volunteer_mail_token(request):
                 'url': url,
                 'conf': request.conference
             })
-            #Message.objects.create(
-            #    thread=volunteer.conversation,
-            #    author=request.conference,
-            #    from_email=request.conference.contact_email,
-            #    content=body,
-            #)
+            # Message.objects.create(
+            #     thread=volunteer.conversation,
+            #     author=request.conference,
+            #     from_email=request.conference.contact_email,
+            #     content=body,
+            # )
             send_mail(
                 subject=_('Thank you for your help!'),
                 message=body,
@@ -249,8 +245,8 @@ Thanks!
 
 {}
 
-""").format(
-            speaker.name, request.conference.name,talk.title, talk.description,
+        """).format(
+            speaker.name, request.conference.name, talk.title, talk.description,
             url_dashboard, url_talk_details, url_speaker_add,
             request.conference.name,
         )
@@ -365,7 +361,7 @@ def proposal_talk_acknowledgment(request, speaker, talk_id, confirm):
         talk.confirmed = confirm
         talk.save()
         if confirm:
-            confirmation_message= _('Your participation has been taken into account, thank you!')
+            confirmation_message = _('Your participation has been taken into account, thank you!')
             thread_note = _('Speaker %(speaker)s confirmed his/her participation.' % {'speaker': speaker})
         else:
             confirmation_message = _('We have noted your unavailability.')
@@ -375,16 +371,16 @@ def proposal_talk_acknowledgment(request, speaker, talk_id, confirm):
     return redirect(reverse('proposal-talk-details', kwargs={'speaker_token': speaker.token, 'talk_id': talk.pk}))
 
 
-# FIXME his this view really useful?
-#@speaker_required
-#def proposal_speaker_details(request, speaker, talk_id, co_speaker_id):
-#    talk = get_object_or_404(Talk, speakers__pk=speaker.pk, pk=talk_id)
-#    co_speaker = get_object_or_404(Participant, talk_set__pk=talk.pk, pk=co_speaker_id)
-#    return render(request, 'cfp/proposal_speaker_details.html', {
-#        'speaker': speaker,
-#        'talk': talk,
-#        'co_speaker': co_speaker,
-#    })
+#  FIXME his this view really useful?
+# @speaker_required
+# def proposal_speaker_details(request, speaker, talk_id, co_speaker_id):
+#     talk = get_object_or_404(Talk, speakers__pk=speaker.pk, pk=talk_id)
+#     co_speaker = get_object_or_404(Participant, talk_set__pk=talk.pk, pk=co_speaker_id)
+#     return render(request, 'cfp/proposal_speaker_details.html', {
+#         'speaker': speaker,
+#         'talk': talk,
+#         'co_speaker': co_speaker,
+#     })
 
 
 @speaker_required
@@ -449,7 +445,7 @@ Thanks!
                         content=body,
                     )
                 messages.success(request, _('Co-speaker successfully added to the talk.'))
-            #return redirect(reverse('proposal-speaker-details', kwargs=dict(speaker_token=speaker.token, talk_id=talk.pk)))
+            # return redirect(reverse('proposal-speaker-details', kwargs=dict(speaker_token=speaker.token, talk_id=talk.pk)))
             return redirect(reverse('proposal-talk-details', kwargs=dict(speaker_token=speaker.token, talk_id=talk.pk)))
         else:
             return redirect(reverse('proposal-dashboard', kwargs=dict(speaker_token=speaker.token)))
@@ -494,7 +490,7 @@ def talk_acknowledgment(request, talk_id, confirm):
     talk.confirmed = confirm
     talk.save()
     if confirm:
-        confirmation_message= _('The speaker confirmation have been noted.')
+        confirmation_message = _('The speaker confirmation have been noted.')
         thread_note = _('The talk have been confirmed.')
     else:
         confirmation_message = _('The speaker unavailability have been noted.')
@@ -532,10 +528,10 @@ def talk_list(request):
             show_filters = True
             talks = talks.filter(accepted=True)
             talks = talks.filter(reduce(lambda x, y: x | y, [Q(confirmed=dict(CONFIRMATION_VALUES)[status]) for status in data['confirmed']]))
-        if data['room'] != None:
+        if data['room'] is not None:
             show_filters = True
             talks = talks.filter(room__isnull=not data['room'])
-        if data['scheduled'] != None:
+        if data['scheduled'] is not None:
             show_filters = True
             talks = talks.filter(start_date__isnull=not data['scheduled'])
         if len(data['tag']):
@@ -550,20 +546,20 @@ def talk_list(request):
             if len(data['track']):
                 q |= Q(track__slug__in=data['track'])
             talks = talks.filter(q)
-        if data['vote'] != None:
+        if data['vote'] is not None:
             show_filters = True
             if data['vote']:
                 talks = talks.filter(vote__user=request.user)
             else:
                 talks = talks.exclude(vote__user=request.user)
-        if data['materials'] != None:
+        if data['materials'] is not None:
             show_filters = True
             materials_filter = Q(materials__isnull=False) & ~Q(materials__exact='')
             if data['materials']:
                 talks = talks.filter(materials_filter)
             else:
                 talks = talks.filter(~materials_filter)
-        if data['video'] != None:
+        if data['video'] is not None:
             show_filters = True
             if data['video']:
                 talks = talks.exclude(video__exact='')
@@ -585,7 +581,7 @@ def talk_list(request):
         data = action_form.cleaned_data
         for talk_id in data['talks']:
             talk = Talk.objects.get(pk=talk_id)
-            if data['decision'] != None and data['decision'] != talk.accepted:
+            if data['decision'] is not None and data['decision'] != talk.accepted:
                 if data['decision']:
                     note = _("The talk has been accepted.")
                 else:
@@ -778,9 +774,9 @@ class ParticipantCreate(StaffRequiredMixin, CreateView):
 
     def get_form_class(self):
         return modelform_factory(
-                    self.model,
-                    form=ParticipantForm,
-                    fields=['name', 'vip', 'email', 'phone_number', 'biography', 'notes'] + ParticipantForm.SOCIAL_FIELDS,
+            self.model,
+            form=ParticipantForm,
+            fields=['name', 'vip', 'email', 'phone_number', 'biography', 'notes'] + ParticipantForm.SOCIAL_FIELDS,
         )
 
 
@@ -792,9 +788,9 @@ class ParticipantUpdate(StaffRequiredMixin, UpdateView):
 
     def get_form_class(self):
         return modelform_factory(
-                    self.model,
-                    form=ParticipantForm,
-                    fields=['name', 'vip', 'email', 'phone_number', 'biography', 'notes'] + ParticipantForm.SOCIAL_FIELDS,
+            self.model,
+            form=ParticipantForm,
+            fields=['name', 'vip', 'email', 'phone_number', 'biography', 'notes'] + ParticipantForm.SOCIAL_FIELDS,
         )
 
 

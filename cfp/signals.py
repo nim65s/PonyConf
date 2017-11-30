@@ -1,14 +1,15 @@
-from django.db.models.signals import pre_save, post_save
-from django.dispatch import receiver
-from django.contrib.sites.models import Site
 from django.conf import settings
-from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import User
+from django.contrib.sites.models import Site
 from django.core.urlresolvers import reverse
+from django.db.models.signals import post_save, pre_save
+from django.dispatch import receiver
+from django.utils.translation import ugettext_lazy as _
 
+from mailing.models import Message, MessageThread
 from ponyconf.decorators import disable_for_loaddata
-from mailing.models import MessageThread, Message
-from .models import Participant, Talk, Conference, Volunteer
+
+from .models import Conference, Participant, Talk, Volunteer
 
 
 @receiver(post_save, sender=Site, dispatch_uid="Create Conference for Site")
@@ -20,6 +21,8 @@ def create_conference(sender, instance, **kwargs):
 def create_conversation(sender, instance, **kwargs):
     if not hasattr(instance, 'conversation'):
         instance.conversation = MessageThread.objects.create()
+
+
 pre_save.connect(create_conversation, sender=Participant)
 pre_save.connect(create_conversation, sender=Talk)
 pre_save.connect(create_conversation, sender=Volunteer)
@@ -72,32 +75,33 @@ def send_message_notifications(sender, instance, **kwargs):
     else:
         reply_to = None
     sender = (message.author_display, conf.contact_email)
-    staff_dests = [ (user.get_full_name(), user.email) for user in conf.staff.all() ]
+    staff_dests = [(user.get_full_name(), user.email) for user in conf.staff.all()]
     if hasattr(thread, 'participant'):
         conf = thread.participant.site.conference
         participant = thread.participant
-        participant_dests = [ (participant.name, participant.email) ]
+        participant_dests = [(participant.name, participant.email)]
         participant_subject = _('[%(prefix)s] Message from the staff') % {'prefix': conf.name}
         staff_subject = _('[%(prefix)s] Conversation with %(dest)s') % {'prefix': conf.name, 'dest': participant.name}
         proto = 'https' if conf.secure_domain else 'http'
         footer = '\n\n--\n%s://' % proto + conf.site.domain + reverse('participant-details', args=[participant.pk])
-        if message.from_email == conf.contact_email: # this is a talk notification message
+        if message.from_email == conf.contact_email:  # this is a talk notification message
             # send it only to the participant
-            message.send_notification(subject=subject_prefix+participant_subject, sender=sender, dests=participant_dests,
-                                      reply_to=reply_to, message_id=message_id, reference=reference)
+            message.send_notification(subject=subject_prefix + participant_subject, sender=sender,
+                                      dests=participant_dests, reply_to=reply_to, message_id=message_id,
+                                      reference=reference)
         else:
             # this is a message between the staff and the participant
-            message.send_notification(subject=subject_prefix+staff_subject, sender=sender, dests=staff_dests,
+            message.send_notification(subject=subject_prefix + staff_subject, sender=sender, dests=staff_dests,
                                       reply_to=reply_to, message_id=message_id, reference=reference, footer=footer)
-            if message.from_email != thread.participant.email: # message from staff: sent it to the participant too
-                message.send_notification(subject=subject_prefix+participant_subject, sender=sender, dests=participant_dests,
-                                          reply_to=reply_to, message_id=message_id, reference=reference)
+            if message.from_email != thread.participant.email:  # message from staff: sent it to the participant too
+                message.send_notification(subject=subject_prefix + participant_subject, sender=sender,
+                                          dests=participant_dests, reply_to=reply_to, message_id=message_id, reference=reference)
     elif hasattr(thread, 'talk'):
         conf = thread.talk.site.conference
         subject = _('[%(prefix)s] Talk: %(talk)s') % {'prefix': conf.name, 'talk': thread.talk.title}
         proto = 'https' if conf.secure_domain else 'http'
         footer = '\n\n--\n%s://' % proto + conf.site.domain + reverse('talk-details', args=[thread.talk.pk])
-        message.send_notification(subject=subject_prefix+subject, sender=sender, dests=staff_dests,
+        message.send_notification(subject=subject_prefix + subject, sender=sender, dests=staff_dests,
                                   reply_to=reply_to, message_id=message_id, reference=reference, footer=footer)
 
 

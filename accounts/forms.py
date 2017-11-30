@@ -1,17 +1,15 @@
 from django.contrib.auth.forms import AuthenticationForm
-from django.utils.translation import ugettext_lazy as _
 from django.forms.models import modelform_factory
+from django.utils.translation import ugettext_lazy as _
 
-
-from .models import User, Profile
-
+from .models import Profile, User
 
 # email MUST be validated, we do not allow to edit it
 UserForm = modelform_factory(User, fields=['first_name', 'last_name', 'username'])
 
 ProfileForm = modelform_factory(Profile, fields=[
-                    'phone_number', 'biography', 'twitter', 'website',
-                    'linkedin', 'facebook', 'mastodon'])
+    'phone_number', 'biography', 'twitter', 'website',
+    'linkedin', 'facebook', 'mastodon'])
 
 
 class EmailAuthenticationForm(AuthenticationForm):

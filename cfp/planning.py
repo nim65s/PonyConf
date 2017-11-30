@@ -1,22 +1,20 @@
-from django.db.models import Q, Prefetch
-from django.utils.safestring import mark_safe
-from django.utils.html import escape
-from django.utils.timezone import localtime, now
-from django.core.cache import cache
-from django.core.urlresolvers import reverse
-from django.template.loader import get_template
-from django.conf import settings
-
-from datetime import datetime, timedelta
-from copy import deepcopy
+import xml.etree.ElementTree as ET
 from collections import OrderedDict, namedtuple
+from datetime import datetime, timedelta
 from itertools import islice
 from zlib import adler32
-import xml.etree.ElementTree as ET
-from icalendar import Calendar as iCalendar, Event as iEvent
 
-from .models import Conference, Talk, Room, Tag
+from django.conf import settings
+from django.core.cache import cache
+from django.db.models import Prefetch, Q
+from django.utils.html import escape
+from django.utils.safestring import mark_safe
+from django.utils.timezone import localtime, now
 
+from icalendar import Calendar as iCalendar
+from icalendar import Event as iEvent
+
+from .models import Conference, Room, Tag, Talk
 
 Event = namedtuple('Event', ['talk', 'row', 'rowcount'])
 
@@ -34,14 +32,14 @@ class Program:
     def _lazy_init(self):
         self.conference = Conference.objects.get(site=self.site)
         self.talks = Talk.objects.\
-                            exclude(category__label__exact='').\
-                            exclude(confirmed=False).\
-                            filter(site=self.site, room__isnull=False, start_date__isnull=False).\
-                            filter(Q(duration__gt=0) | Q(category__duration__gt=0)).\
-                            prefetch_related(
-                                Prefetch('tags', queryset=Tag.objects.filter(staff=True), to_attr='staff_tags'),
-                                'category', 'speakers', 'track', 'tags', 'room',
-                            )
+            exclude(category__label__exact='').\
+            exclude(confirmed=False).\
+            filter(site=self.site, room__isnull=False, start_date__isnull=False).\
+            filter(Q(duration__gt=0) | Q(category__duration__gt=0)).\
+            prefetch_related(
+                Prefetch('tags', queryset=Tag.objects.filter(staff=True), to_attr='staff_tags'),
+                'category', 'speakers', 'track', 'tags', 'room',
+            )
 
         if self.pending:
             self.talks = self.talks.exclude(accepted=False)
@@ -88,7 +86,7 @@ class Program:
         d1 = localtime(dt1).date()
         dt2 = talk.start_date + timedelta(minutes=talk.estimated_duration)
         d2 = localtime(dt2).date()
-        assert(d1 == d2) # this is a current limitation
+        assert(d1 == d2)  # this is a current limitation
         dt1 = self.days[d1]['timeslots'].index(dt1)
         dt2 = self.days[d1]['timeslots'].index(dt2)
         col = None
@@ -97,8 +95,8 @@ class Program:
                 col = 0
                 while col < len(self.days[d1]['rows'][timeslot][room]) and self.days[d1]['rows'][timeslot][room][col]:
                     col += 1
-                self.cols[room] = max(self.cols[room], col+1)
-            event = Event(talk=talk, row=row, rowcount=dt2-dt1)
+                self.cols[room] = max(self.cols[room], col + 1)
+            event = Event(talk=talk, row=row, rowcount=dt2 - dt1)
             while len(self.days[d1]['rows'][timeslot][room]) <= col:
                 self.days[d1]['rows'][timeslot][room].append(None)
             self.days[d1]['rows'][timeslot][room][col] = event
@@ -152,7 +150,7 @@ class Program:
                     cellcontent = escape(str(event.talk)) + '<br><em>' + escape(event.talk.get_speakers_str()) + '</em>'
                     for tag in event.talk.staff_tags:
                         cellcontent += '<br>' + tag.label
-                elif (i+1 > len(events) or not events[i+1]) and i+1 < self.cols[room]:
+                elif (i + 1 > len(events) or not events[i + 1]) and i + 1 < self.cols[room]:
                     colspan += 1
                     continue
                 colspan = 1
@@ -165,9 +163,8 @@ class Program:
         }
 
     def _html_timeslot(self, day, ts):
-        template = '<td>%(content)s</td>'
         start = ts
-        end = self.days[day]['timeslots'][self.days[day]['timeslots'].index(ts)+1]
+        end = self.days[day]['timeslots'][self.days[day]['timeslots'].index(ts) + 1]
         duration = (end - start).seconds / 60
         date_to_string = lambda date: datetime.strftime(localtime(date), '%H:%M')
         style = 'height: %dpx;' % int(duration * 1.2)
@@ -204,15 +201,15 @@ class Program:
             elt.text = str(len(self.days))
 
         for index, day in enumerate(sorted(self.days.keys())):
-            day_elt = ET.SubElement(schedule, 'day', index=str(index+1), date=day.strftime('%Y-%m-%d'))
+            day_elt = ET.SubElement(schedule, 'day', index=str(index + 1), date=day.strftime('%Y-%m-%d'))
             for room in self.rooms.all():
-                room_elt = ET.SubElement(day_elt, 'room', name=room.name)
+                # room_elt = ET.SubElement(day_elt, 'room', name=room.name)
                 for talk in self.talks.filter(room=room).order_by('start_date'):
                     if localtime(talk.start_date).date() != day:
                         continue
                     talk_elt = ET.SubElement(day_elt, 'event', id=str(talk.id))
-                    duration = talk.estimated_duration
-                    persons_elt = ET.SubElement(talk_elt, 'persons')
+                    # duration = talk.estimated_duration
+                    # persons_elt = ET.SubElement(talk_elt, 'persons')
                     for speaker in talk.speakers.all():
                         person_elt = ET.SubElement(talk_elt, 'person', id=str(speaker.id))
                         person_elt.text = str(speaker)
@@ -270,7 +267,7 @@ class Program:
         cal.add('calscale', 'GREGORIAN')
         talks = self.talks
         if citymeo and talks.exists():
-            talks = talks.filter(start_date__gte=now()-timedelta(minutes=5))
+            talks = talks.filter(start_date__gte=now() - timedelta(minutes=5))
             if talks.exists():
                 limit = talks.first().start_date.replace(hour=23, minute=59, second=59)
                 talks = talks.filter(start_date__lte=limit)
@@ -297,7 +294,7 @@ class Program:
             result = cache.get(cache_entry)
             if not result:
                 result = getattr(self, '_as_%s' % output)(**kwargs)
-                cache.set(cache_entry, result, 3 * 60 * 60) # 3H
+                cache.set(cache_entry, result, 3 * 60 * 60)  # 3H
             return mark_safe(result)
         else:
             return mark_safe(getattr(self, '_as_%s' % output)(**kwargs))

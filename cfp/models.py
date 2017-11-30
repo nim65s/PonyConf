@@ -1,28 +1,28 @@
+import uuid
+from datetime import timedelta
+from functools import partial
+from os.path import basename, join
+
 from django.contrib.auth.models import User
 from django.contrib.sites.managers import CurrentSiteManager
 from django.contrib.sites.models import Site
+from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models import Q, Count, Avg, Case, When
+from django.db.models import Avg, Case, Count, Q, When
 from django.db.models.functions import Coalesce
 from django.utils import timezone
-from django.utils.translation import ugettext, ugettext_lazy as _
+from django.utils.html import format_html
 from django.utils.safestring import mark_safe
-from django.utils.html import escape, format_html
+from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ugettext
 
 from autoslug import AutoSlugField
 from colorful.fields import RGBColorField
-from functools import partial
 
-import uuid
-from datetime import timedelta
-from os.path import join, basename
-
-from ponyconf.utils import PonyConfModel
 from mailing.models import MessageThread
-
+from ponyconf.utils import PonyConfModel
 
 
 class Conference(models.Model):
@@ -57,8 +57,8 @@ class Conference(models.Model):
     def opened_categories(self):
         now = timezone.now()
         return TalkCategory.objects.filter(site=self.site)\
-                            .filter(Q(opening_date__isnull=True) | Q(opening_date__lte=now))\
-                            .filter(Q(closing_date__isnull=True) | Q(closing_date__gte=now))
+            .filter(Q(opening_date__isnull=True) | Q(opening_date__lte=now))\
+            .filter(Q(closing_date__isnull=True) | Q(closing_date__gte=now))
 
     @property
     def disclosed_acceptances(self):
@@ -74,7 +74,7 @@ class Conference(models.Model):
         return self.video_publishing_date and self.video_publishing_date <= timezone.now()
 
     def from_email(self):
-        return self.name+' <'+self.contact_email+'>'
+        return self.name + ' <' + self.contact_email + '>'
 
     def clean_fields(self, exclude=None):
         super().clean_fields(exclude)
@@ -149,9 +149,11 @@ class Participant(PonyConfModel):
     @property
     def accepted_talk_set(self):
         return self.talk_set.filter(accepted=True)
+
     @property
     def pending_talk_set(self):
         return self.talk_set.filter(accepted=None)
+
     @property
     def refused_talk_set(self):
         return self.talk_set.filter(accepted=False)
@@ -164,7 +166,7 @@ class Track(PonyConfModel):
     description = models.TextField(blank=True, verbose_name=_('Description'))
 
     objects = CurrentSiteManager()
-    #managers = models.ManyToManyField(User, blank=True, verbose_name=_('Managers'))
+    # managers = models.ManyToManyField(User, blank=True, verbose_name=_('Managers'))
 
     class Meta:
         unique_together = ('site', 'name')
@@ -254,7 +256,7 @@ class Tag(models.Model):
         return self.name
 
 
-class TalkCategory(models.Model): # type of talk (conf 30min, 1h, stand, …)
+class TalkCategory(models.Model):  # type of talk (conf 30min, 1h, stand, …)
     site = models.ForeignKey(Site, on_delete=models.CASCADE)
     name = models.CharField(max_length=64)
     duration = models.PositiveIntegerField(default=0, verbose_name=_('Default duration (min)'))
@@ -289,28 +291,28 @@ class TalkCategory(models.Model): # type of talk (conf 30min, 1h, stand, …)
         return reverse('talk-list') + '?category=%d' % self.pk
 
 
-#class Attendee(PonyConfModel):
+# class Attendee(PonyConfModel):
 #
-#    user = models.ForeignKey(User, null=True)
-#    name = models.CharField(max_length=64, blank=True, default="")
-#    email = models.EmailField(blank=True, default="")
+#     user = models.ForeignKey(User, null=True)
+#     name = models.CharField(max_length=64, blank=True, default="")
+#     email = models.EmailField(blank=True, default="")
 #
-#    def get_name(self):
-#        if self.user:
-#            return str(self.user.profile)
-#        else:
-#            return self.name
-#    get_name.short_description = _('Name')
+#     def get_name(self):
+#         if self.user:
+#             return str(self.user.profile)
+#         else:
+#             return self.name
+#     get_name.short_description = _('Name')
 #
-#    def get_email(self):
-#        if self.user:
-#            return self.user.email
-#        else:
-#            return self.email
-#    get_email.short_description = _('Email')
+#     def get_email(self):
+#         if self.user:
+#             return self.user.email
+#         else:
+#             return self.email
+#     get_email.short_description = _('Email')
 #
-#    def __str__(self):
-#        return self.get_name()
+#     def __str__(self):
+#         return self.get_name()
 
 
 class TalkManager(CurrentSiteManager):
@@ -330,7 +332,7 @@ class Talk(PonyConfModel):
         ('CC-BY-SA', 'CC-BY-SA'),
         ('CC-BY-ND', 'CC-BY-ND'),
         ('CC-BY-NC', 'CC-BY-NC'),
-        ('CC-BY-NC-SA','CC-BY-NC-SA'),
+        ('CC-BY-NC-SA', 'CC-BY-NC-SA'),
         ('CC-BY-NC-ND', 'CC-BY-NC-ND'),
     )
 
@@ -343,10 +345,10 @@ class Talk(PonyConfModel):
     track = models.ForeignKey(Track, blank=True, null=True, verbose_name=_('Track'))
     tags = models.ManyToManyField(Tag, blank=True)
     notes = models.TextField(blank=True, verbose_name=_('Message to organizers'),
-                                   help_text=_('If you have any constraint or if you have anything that may '
-                                               'help you to select your talk, like a video or slides of your'
-                                               ' talk, please write it down here. This field will only be '
-                                               'visible by organizers.'))
+                             help_text=_('If you have any constraint or if you have anything that may '
+                                         'help you to select your talk, like a video or slides of your'
+                                         ' talk, please write it down here. This field will only be '
+                                         'visible by organizers.'))
     category = models.ForeignKey(TalkCategory, verbose_name=_('Talk Category'))
     videotaped = models.BooleanField(_("I'm ok to be recorded on video"), default=True)
     video_licence = models.CharField(choices=LICENCES, default='CC-BY-SA',
@@ -359,7 +361,7 @@ class Talk(PonyConfModel):
     room = models.ForeignKey(Room, blank=True, null=True, default=None)
     plenary = models.BooleanField(default=False)
     materials = models.FileField(null=True, blank=True, upload_to=talks_materials_destination, verbose_name=_('Materials'),
-                                     help_text=_('You can use this field to share some materials related to your intervention.'))
+                                 help_text=_('You can use this field to share some materials related to your intervention.'))
     video = models.URLField(max_length=1000, blank=True, default='', verbose_name='Video URL')
     token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     conversation = models.OneToOneField(MessageThread)
@@ -367,7 +369,7 @@ class Talk(PonyConfModel):
     objects = TalkManager()
 
     class Meta:
-        ordering = ('title',)
+        ordering = ('category__id', 'title',)
 
     def __str__(self):
         return self.title
@@ -447,9 +449,6 @@ class Talk(PonyConfModel):
     @property
     def materials_name(self):
         return basename(self.materials.name)
-
-    class Meta:
-        ordering = ('category__id', 'title',)
 
 
 class Vote(PonyConfModel):

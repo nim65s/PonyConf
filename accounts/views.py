@@ -1,12 +1,10 @@
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
+from django.shortcuts import render
 from django.utils.translation import ugettext as _
-from django.shortcuts import redirect, render
-from django.contrib import messages
 
-from accounts.models import User, Profile
-from accounts.forms import UserForm, ProfileForm, EmailAuthenticationForm
-
+from accounts.forms import EmailAuthenticationForm, ProfileForm, UserForm
 
 RESET_PASSWORD_BUTTON = ('password_reset', 'warning', _('Reset your password'))
 CHANGE_PASSWORD_BUTTON = ('password_change', 'warning', _('Change password'))

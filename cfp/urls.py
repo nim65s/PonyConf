@@ -4,7 +4,7 @@ from . import views
 
 urlpatterns = [
     url(r'^$', views.home, name='home'),
-# v1.1
+    # v1.1
     url(r'^cfp/$', views.proposal_home, name='proposal-home'),
     url(r'^cfp/token/$', views.proposal_mail_token, name='proposal-mail-token'),
     url(r'^cfp/(?:(?P<speaker_token>[\w\-]+)/)?dashboard/$', views.proposal_dashboard, name='proposal-dashboard'),
@@ -14,7 +14,7 @@ urlpatterns = [
     url(r'^cfp/(?:(?P<speaker_token>[\w\-]+)/)?talk/(?P<talk_id>[0-9]+)/edit/$', views.proposal_talk_edit, name='proposal-talk-edit'),
     url(r'^cfp/(?:(?P<speaker_token>[\w\-]+)/)?talk/(?P<talk_id>[0-9]+)/speaker/add/$', views.proposal_speaker_edit, name='proposal-speaker-add'),
     url(r'^cfp/(?:(?P<speaker_token>[\w\-]+)/)?talk/(?P<talk_id>[0-9]+)/speaker/add/(?P<speaker_id>[0-9]+)/$', views.proposal_speaker_add, name='proposal-speaker-add-existing'),
-    #url(r'^cfp(?:/(?P<speaker_token>[\w\-]+))?/talk/(?P<talk_id>[0-9]+)/speaker/(?P<co_speaker_id>[0-9]+)/$', views.proposal_speaker_details, name='proposal-speaker-details'),
+    # url(r'^cfp(?:/(?P<speaker_token>[\w\-]+))?/talk/(?P<talk_id>[0-9]+)/speaker/(?P<co_speaker_id>[0-9]+)/$', views.proposal_speaker_details, name='proposal-speaker-details'),
     url(r'^cfp/(?:(?P<speaker_token>[\w\-]+)/)?talk/(?P<talk_id>[0-9]+)/speaker/(?P<co_speaker_id>[0-9]+)/edit/$', views.proposal_speaker_edit, name='proposal-speaker-edit'),
     url(r'^cfp/(?:(?P<speaker_token>[\w\-]+)/)?talk/(?P<talk_id>[0-9]+)/speaker/(?P<co_speaker_id>[0-9]+)/remove/$', views.proposal_speaker_remove, name='proposal-speaker-remove'),
     url(r'^cfp/(?:(?P<speaker_token>[\w\-]+)/)?talk/(?P<talk_id>[0-9]+)/confirm/$', views.proposal_talk_acknowledgment, {'confirm': True}, name='proposal-talk-confirm'),
@@ -24,8 +24,8 @@ urlpatterns = [
     url(r'^volunteer/(?:(?P<volunteer_token>[\w\-]+)/)?$', views.volunteer_dashboard, name='volunteer-dashboard'),
     url(r'^volunteer/(?:(?P<volunteer_token>[\w\-]+)/)?join/(?P<activity>[\w\-]+)/$', views.volunteer_update_activity, {'join': True}, name='volunteer-join'),
     url(r'^volunteer/(?:(?P<volunteer_token>[\w\-]+)/)?quit/(?P<activity>[\w\-]+)/$', views.volunteer_update_activity, {'join': False}, name='volunteer-quit'),
-    #url(r'^talk/(?P<talk_id>[\w\-]+)/$', views.talk_show, name='show-talk'),
-    #url(r'^speaker/(?P<participant_id>[\w\-]+)/$', views.speaker_show, name='show-speaker'),
+    # url(r'^talk/(?P<talk_id>[\w\-]+)/$', views.talk_show, name='show-talk'),
+    # url(r'^speaker/(?P<participant_id>[\w\-]+)/$', views.speaker_show, name='show-speaker'),
     url(r'^staff/$', views.staff, name='staff'),
     url(r'^staff/talks/$', views.talk_list, name='talk-list'),
     url(r'^staff/talks/(?P<talk_id>[0-9]+)/$', views.talk_details, name='talk-details'),
